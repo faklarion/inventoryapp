@@ -1,0 +1,114 @@
+unit inputbarangkeluar;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ComCtrls, StdCtrls, DBCtrls;
+
+type
+  Tfbarangkeluar = class(TForm)
+    Label1: TLabel;
+    Label2: TLabel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Edit1: TEdit;
+    DateTimePicker1: TDateTimePicker;
+    ComboBox1: TComboBox;
+    Button1: TButton;
+    Button2: TButton;
+    Label5: TLabel;
+    Edit2: TEdit;
+    Label6: TLabel;
+    Edit3: TEdit;
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure Edit1KeyPress(Sender: TObject; var Key: Char);
+    procedure FormShow(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  fbarangkeluar: Tfbarangkeluar;
+
+implementation
+
+uses Unit1;
+
+{$R *.dfm}
+
+procedure Tfbarangkeluar.Button1Click(Sender: TObject);
+begin
+if (Edit3.Text='') or(Edit1.Text='') or(ComboBox1.Text='') or (Edit2.Text='') then
+begin
+  ShowMessage('Data Masih Ada Yang Kosong !');
+end else
+IF (dm.qstok.Locate('nama_barang',ComboBox1.Text,[])) and (StrToInt(Edit1.Text)>dm.qstok.FieldByName('jumlah').AsInteger) then
+begin
+ShowMessage('Stok Tidak Cukup !');
+Edit1.Clear;
+end else
+IF (dm.qstok.Locate('nama_barang',ComboBox1.Text,[])) and (dm.qstok.FieldByName('jumlah').AsInteger=0) then
+begin
+ShowMessage('Stok Kosong !');
+Edit1.Clear;
+end else
+IF dm.qstok.Locate('nama_barang',ComboBox1.Text,[]) and (dm.qstok.FieldByName('jumlah').AsInteger>0) then
+begin
+dm.qstok.Edit;
+dm.qstok.FieldByName('jumlah').AsInteger:=dm.qstok.FieldByName('jumlah').AsInteger-StrToInt(Edit1.Text);
+dm.qstok.Post;
+dm.qluar.Append;
+dm.qluar.FieldByName('nama_barang').AsString:=ComboBox1.Text;
+dm.qluar.FieldByName('jumlah').AsInteger:=StrToInt(Edit1.Text);
+dm.qluar.FieldByName('tanggal').AsDateTime:=DateTimePicker1.DateTime;
+dm.qluar.FieldByName('pengeluar_barang').AsString:=edit2.Text;
+dm.qluar.FieldByName('penerima').AsString:=edit3.Text;
+dm.qluar.Post;
+ShowMessage('Data Berhasil Ditambahkan !!!');
+Edit1.Clear;
+edit2.Clear;
+edit3.Clear;
+dm.qstok.Active:=false;
+dm.qstok.SQL.Text:='select * from stok';
+dm.qstok.Active:=true;
+ComboBox1.Items.Clear;
+  while not dm.qmasuk.Eof do
+  begin
+    ComboBox1.Items.Add(dm.qstok.fieldbyname('nama_barang').AsString);
+    dm.qstok.Next;
+  end;
+end else
+begin
+ShowMessage('Barang Tidak Ada di Dalam Data Stok!');
+end;
+end;
+
+procedure Tfbarangkeluar.Button2Click(Sender: TObject);
+begin
+close;
+end;
+
+procedure Tfbarangkeluar.Edit1KeyPress(Sender: TObject; var Key: Char);
+begin
+if not ( key in['0'..'9', #8, #13]) then
+    key:= #0 ;
+end;
+
+procedure Tfbarangkeluar.FormShow(Sender: TObject);
+begin
+dm.qstok.Active:=false;
+dm.qstok.SQL.Text:='select * from stok';
+dm.qstok.Active:=true;
+ComboBox1.Items.Clear;
+  while not dm.qmasuk.Eof do
+  begin
+    ComboBox1.Items.Add(dm.qstok.fieldbyname('nama_barang').AsString);
+    dm.qstok.Next;
+  end;
+end;
+
+end.
